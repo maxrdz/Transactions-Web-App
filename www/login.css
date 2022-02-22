@@ -9,7 +9,7 @@ body {
 h1 {
     margin: 0;
 }
-/* Mobile Scaling */
+/* Regular Mobile Scaling */
 @media only screen and (min-width: 10px) {
     .login-header {
         margin: 0;
@@ -21,11 +21,20 @@ h1 {
         text-align: center;
         font-family: 'Open Sans', sans-serif;
     }
+    #container {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        background-color: #ffffff;
+    }
     .login {
+        width: 85%;
         margin: 5%;
         margin-top: 5%;
         border-radius: 10%;
-        border: 2px solid #81bac9;
+        border: 2px solid #589ebe;
         padding-top: 3%;
         padding-bottom: 3%;
         background-color: #e7e7e7;
@@ -44,7 +53,13 @@ h1 {
     }
     .login input {
         font-family: 'Open Sans', sans-serif;
+        font-size: 100%;
+        text-align: center;
         margin-bottom: 2.5%;
+    }
+    .button {
+        margin: 3%;
+        background-color: #1b97c0;
     }
     .login h2 {
         margin: 4%;
@@ -52,36 +67,44 @@ h1 {
     .login h4 {
         margin: 2%;
     }
+    .footer {
+        background-color: #202020;
+        font-family: arial;
+        position: fixed;
+        width: 100%;
+        bottom: 0;
+    }
+    .copyright {
+        padding-top: 2%;
+        padding-bottom: 1.5%;
+        width: 100%;
+        text-align: center;
+        margin: 0 auto;
+        color: #b3b3b3;
+        font-size: 95%;
+    }
+    .copyright a {
+        color: #4096e6;
+        text-decoration: none;
+    }
 }
+
 /* Tablet/Desktop Scaling */
 @media only screen and (min-width: 800px) {
     .login-header {
-        margin: 0;
         padding-top: 1%;
         padding-bottom: 1%;
-        background-color: #1b97c0;
-        color: white;
-        font-size: 125%;
-        text-align: center;
-        font-family: 'Open Sans', sans-serif;
     }
     .login {
-        margin: 7%;
-        margin-top: 2.5%;
-        border-radius: 10%;
-        border: 2px solid #81bac9;
-        padding-top: 3%;
-        padding-bottom: 3%;
-        background-color: #e7e7e7;
-        color: black;
-        font-size: 125%;
-        text-align: center;
-        font-family: 'Open Sans', sans-serif;
+        width: 50%;
     }
-    .login h2 {
-        margin: 4%;
+    .login img {
+        width: 30%;
+        height: auto;
     }
-    .login h4 {
-        margin: 2%;
+    .copyright {
+        padding-top: .5%;
+        padding-bottom: .3%;
+        width: 80%;
     }
 }
