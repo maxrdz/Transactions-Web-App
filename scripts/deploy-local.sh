@@ -4,6 +4,10 @@
 # (Run from project root directory)
 # Usage: sudo ./scripts/deploy-local-nginx.sh
 
+if [ ! -d "/data" ]; then
+    mkdir /data/www
+    mkdir /data/images
+fi
 echo "Copying website files to /data/www.."
 cp -r www/* /data/www
 echo "Copying resources to /data/images.."
