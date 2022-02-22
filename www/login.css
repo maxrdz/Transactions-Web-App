@@ -1,0 +1,87 @@
+/* CSS file for index.html */
+
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300&family=Roboto+Serif:wght@200&display=swap');
+
+body {
+    margin: 0;
+    background-color: #ffffff;
+}
+h1 {
+    margin: 0;
+}
+/* Mobile Scaling */
+@media only screen and (min-width: 10px) {
+    .login-header {
+        margin: 0;
+        padding-top: 4%;
+        padding-bottom: 4%;
+        background-color: #1b97c0;
+        color: white;
+        font-size: 125%;
+        text-align: center;
+        font-family: 'Open Sans', sans-serif;
+    }
+    .login {
+        margin: 5%;
+        margin-top: 5%;
+        border-radius: 10%;
+        border: 2px solid #81bac9;
+        padding-top: 3%;
+        padding-bottom: 3%;
+        background-color: #e7e7e7;
+        color: black;
+        font-size: 125%;
+        text-align: center;
+        font-family: 'Open Sans', sans-serif;
+    }
+    .login img {
+        width: 40%;
+        height: auto;
+    }
+    .login label {
+        font-size: 110%;
+        font-family: 'Open Sans', sans-serif;
+    }
+    .login input {
+        font-family: 'Open Sans', sans-serif;
+        margin-bottom: 2.5%;
+    }
+    .login h2 {
+        margin: 4%;
+    }
+    .login h4 {
+        margin: 2%;
+    }
+}
+/* Tablet/Desktop Scaling */
+@media only screen and (min-width: 800px) {
+    .login-header {
+        margin: 0;
+        padding-top: 1%;
+        padding-bottom: 1%;
+        background-color: #1b97c0;
+        color: white;
+        font-size: 125%;
+        text-align: center;
+        font-family: 'Open Sans', sans-serif;
+    }
+    .login {
+        margin: 7%;
+        margin-top: 2.5%;
+        border-radius: 10%;
+        border: 2px solid #81bac9;
+        padding-top: 3%;
+        padding-bottom: 3%;
+        background-color: #e7e7e7;
+        color: black;
+        font-size: 125%;
+        text-align: center;
+        font-family: 'Open Sans', sans-serif;
+    }
+    .login h2 {
+        margin: 4%;
+    }
+    .login h4 {
+        margin: 2%;
+    }
+}
