@@ -44,6 +44,7 @@ h1 {
         font-family: 'Open Sans', sans-serif;
     }
     .login img {
+        padding-bottom: 2%;
         width: 40%;
         height: auto;
     }
@@ -57,9 +58,14 @@ h1 {
         text-align: center;
         margin-bottom: 2.5%;
     }
-    .button {
-        margin: 3%;
-        background-color: #1b97c0;
+    button {
+        margin: 5%;
+        margin-bottom: 2%;
+        color: white;
+        font-size: 130%;
+        border: 5px solid #1d8cb8;
+        border-radius: 10%;
+        background-color: #1d8cb8;
     }
     .login h2 {
         margin: 4%;
@@ -96,7 +102,7 @@ h1 {
         padding-bottom: 1%;
     }
     .login {
-        width: 50%;
+        width: 35%;
     }
     .login img {
         width: 30%;
