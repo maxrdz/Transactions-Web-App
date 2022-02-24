@@ -58,7 +58,7 @@ h1 {
         text-align: center;
         margin-bottom: 2.5%;
     }
-    button {
+    .big_button {
         margin: 5%;
         margin-bottom: 2%;
         color: white;
@@ -66,6 +66,11 @@ h1 {
         border: 5px solid #1d8cb8;
         border-radius: 10%;
         background-color: #1d8cb8;
+    }
+    .big_button:hover {
+        background-color: #199ed3;
+        border: 6px solid #199ed3;
+        cursor: pointer;
     }
     .login h2 {
         margin: 4%;
@@ -95,14 +100,35 @@ h1 {
     }
 }
 
-/* Tablet/Desktop Scaling */
-@media only screen and (min-width: 800px) {
+@media only screen and (min-width: 1100px) {
     .login-header {
         padding-top: 1%;
         padding-bottom: 1%;
     }
     .login {
         width: 35%;
+        margin-top: 2%;
+    }
+    .login img {
+        width: 30%;
+        height: auto;
+    }
+    .copyright {
+        padding-top: .5%;
+        padding-bottom: .3%;
+        width: 80%;
+    }
+}
+
+/* Desktop Scaling */
+@media only screen and (min-width: 1300px) {
+    .login-header {
+        padding-top: 1%;
+        padding-bottom: 1%;
+    }
+    .login {
+        width: 25%;
+        margin-top: 2%;
     }
     .login img {
         width: 30%;
