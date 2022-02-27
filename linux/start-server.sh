@@ -1,5 +1,5 @@
 #!/bin/bash
-# Starts the CherryPy web server.
+# Starts the Flask web server.
 
 # (Run from project root directory)
 # Usage: ./scripts/start-server.sh

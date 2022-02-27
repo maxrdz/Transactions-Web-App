@@ -1,2 +1,2 @@
 ###### Python Environment ######
-CherryPy == 18.6.1
+Flask == 2.0.3
