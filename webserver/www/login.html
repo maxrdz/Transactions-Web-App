@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{%print(Localizer.LANG[lang]["HTML_LANG"])%}">
     <head>
-        <title>{{v1}}</title>
+        <title>{%print(Localizer.LANG[lang]["PAGE_TITLE"])%}</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="apple-touch-icon" sizes="180x180" href="/resources/favicon/apple-touch-icon.png">
@@ -171,24 +171,24 @@
     </script>
     <body>
         <div class="login-header">
-	    <h1>{{v2}}</h1>
+	    <h1>{%print(Localizer.LANG[lang]["LOGIN_HEADER"])%}</h1>
         </div>
         <div id="container">
             <div class="login">
                 <img src="/resources/images/login.png"><br>
                 <form action="" id="login-form">
-                    <label for="username">{{v3}}</label><br>
+                    <label for="username">{%print(Localizer.LANG[lang]["USERNAME"])%}</label><br>
                     <input type="username" name="username" value=""><br>
-                    <label for="password">{{v4}}</label><br>
+                    <label for="password">{%print(Localizer.LANG[lang]["PASSWORD"])%}</label><br>
                     <input type="password" name="password" value=""><br>
-                    <button class="big_button">{{v5}}</button>
+                    <button class="big_button">{%print(Localizer.LANG[lang]["LOGIN"])%}</button>
                 </form>
                 <br>
             </div>
         </div>
         <div class="footer">
-            <p class="copyright" style="padding-bottom: 0%;">{{v6}}: <a style="color: orange;" href="/es">{{v7}}</a> | <a style="color: orange;" href="/en">{{v8}}</a></p>
-            <p class="copyright">Copyright © {{year}} <a href="">Max Rodriguez</a></p>
+            <p class="copyright" style="padding-bottom: 0%;">{%print(Localizer.LANG[lang]["SELECT_LANG"])%}: <a style="color: orange;" href="/es">{%print(Localizer.LANG[lang]["SPANISH"])%}</a> | <a style="color: orange;" href="/en">{%print(Localizer.LANG[lang]["ENGLISH"])%}</a></p>
+            <p class="copyright">Copyright © {%print(date.year)%} <a href="">Max Rodriguez</a></p>
         </div>
     </body>
 
