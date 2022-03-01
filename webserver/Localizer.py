@@ -9,7 +9,7 @@ from datetime import datetime
 class Localizer:
 
     def __init__(self):
-        self.DEFAULT = "spanish"
+        self.DEFAULT = "es"
         self.LANG = {
             "es": {
                 "HTML_LANG": "es",
