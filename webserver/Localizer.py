@@ -1,10 +1,6 @@
 from flask import render_template
 from datetime import datetime
 
-# Languages Supported
-# "/es" - Spanish
-# "/en" - English
-
 
 class Localizer:
     """

@@ -1,5 +1,6 @@
 from flask import Flask, send_from_directory, redirect, url_for
 from webserver.Localizer import SpanishLocalizer, EnglishLocalizer
+from webserver.Database import DatabaseManager
 
 
 class FlaskWebApp:
@@ -17,6 +18,7 @@ class FlaskWebApp:
         self.SpanishLocalizer = SpanishLocalizer()
         self.EnglishLocalizer = EnglishLocalizer()
         self.DEFAULT_LANG = self.SpanishLocalizer.HTML_LANG
+        self.Database = DatabaseManager()
 
         @self.Flask.errorhandler(404)
         def http_not_found(err_msg):
