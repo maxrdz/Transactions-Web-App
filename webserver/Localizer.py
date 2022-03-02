@@ -13,10 +13,12 @@ class Localizer:
     Every language localizer inherits and extends this class.
     """
     def __init__(self):
-        self.DEFAULT = "es"
+        self.HTML_LANG = ""
         self.LANG = {
+            "http_error/404.html": {
+                "ERROR_MESSAGE": ""
+            },
             "login.html": {
-                "HTML_LANG": "",
                 "SPANISH": "",
                 "ENGLISH": "",
                 "PAGE_TITLE": "",
@@ -29,7 +31,8 @@ class Localizer:
         }
 
     def localize_html(self, html):
-        return render_template(html, Localizer=self, Lang=self.LANG[html])
+        return render_template(
+            html, Localizer=self, Lang=self.LANG[html], path=html)
 
     def get_copyright_year(self):
         return datetime.now().year
@@ -39,6 +42,9 @@ class SpanishLocalizer(Localizer):
 
     def __init__(self):
         super().__init__()
+        self.HTML_LANG = "es"
+        # /http_error/404.html dictionary
+        self.LANG["http_error/404.html"]["ERROR_MESSAGE"] = "Página no encontrada."
         # /login.html dictionary
         self.LANG["login.html"]["HTML_LANG"] = "es"
         self.LANG["login.html"]["SPANISH"] = "Español"
@@ -55,6 +61,9 @@ class EnglishLocalizer(Localizer):
 
     def __init__(self):
         super().__init__()
+        self.HTML_LANG = "en"
+        # /http_error/404.html dictionary
+        self.LANG["http_error/404.html"]["ERROR_MESSAGE"] = "Not Found."
         # /login.html dictionary
         self.LANG["login.html"]["HTML_LANG"] = "en"
         self.LANG["login.html"]["SPANISH"] = "Spanish"
