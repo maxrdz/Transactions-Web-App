@@ -29,7 +29,10 @@ class Localizer:
         }
 
     def localize_html(self, html):
-        return render_template(html, Lang=self.LANG[html], date=datetime.now())
+        return render_template(html, Localizer=self, Lang=self.LANG[html])
+
+    def get_copyright_year(self):
+        return datetime.now().year
 
 
 class SpanishLocalizer(Localizer):
