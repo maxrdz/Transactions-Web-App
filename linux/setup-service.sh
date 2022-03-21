@@ -12,7 +12,7 @@ SERVICE=flask.service
 cd $SYSTEMD
 touch $SERVICE
 echo "[Unit]
-Description=Flask Python Web Server
+Description=Flask Web Server
 After=network.target
 
 [Service]
