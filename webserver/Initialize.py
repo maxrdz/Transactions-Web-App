@@ -24,11 +24,15 @@ class FlaskWebApp:
         @self.Flask.route("/auth/", methods=["GET"])
         def authentication_query():
             query_strings = request.args
-            username = query_strings['username']
-            password = query_strings['password']
+            try:
+                username = query_strings['username']
+                password = query_strings['password']
 
-            auth = self.Database.authenticate_user(username, password)
-            return f"Authentication Status Received: {auth}"
+                auth = self.Database.authenticate_user(username, password)
+                return f"Authentication Status Received: {auth}"
+            except KeyError:  # No query strings given, redirect 404.
+                return redirect(url_for("static_files", path="/err"))
+            # Could not redirect to 404 directly, so redirect to fake dir.
 
         # HTTP Code 404 Page
         @self.Flask.errorhandler(404)
