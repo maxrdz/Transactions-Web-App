@@ -1,4 +1,5 @@
 import os
+import uuid
 from pymysql import connections
 from sqlalchemy import engine, create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
@@ -16,6 +17,7 @@ class User(DeclarativeBase):
     last_name = Column(String(30))
     status = Column(SMALLINT)
     created_at = Column(TIMESTAMP)
+    session_id = Column(String(40))  # (NULL if logged out)
 
 
 class Transaction(DeclarativeBase):
@@ -61,7 +63,7 @@ class DatabaseManager:
                 self.configuration["sql-driver"],
                 user=self.configuration["sql-user"],
                 password=self.configuration["sql-pass"],
-                db=self.configuration["sql-db"],
+                db=self.configuration["sql-db"]
             )
             return connect
 
@@ -92,6 +94,37 @@ class DatabaseManager:
                 return query_status
         return query_status
 
+    def create_session(self, username: str):
+        """
+        Create and assign new Session ID to User specified.
+        """
+        new_sid = uuid.uuid4()
+        user = self.session.query(User).get(username)
+
+        if user.session_id is not None:
+            return False  # The User already has a session.
+
+        user.session_id = new_sid
+        self.session.commit()  # Insert new session ID to database.
+        return new_sid
+
+    def end_session(self, username: str):
+        """
+        End an existing session for a User and delete SID in database.
+        """
+        user = self.session.query(User).get(username)
+        user.session_id = None
+        self.session.commit()
+
+    def validate_session(self, username: str, session_id: str):
+        """
+        Validate a session ID for an existing session in the database.
+        """
+        user = self.session.query(User).get(username)
+        if user.session_id == session_id:
+            return True
+        return False
+
     def create_transaction(self, topic: str, t_type: int, amount: int):
         """
         Add a new transaction entry to the database. For
@@ -104,4 +137,4 @@ class DatabaseManager:
         transaction.type = t_type
         transaction.amount = amount
         self.session.add(transaction)
-        self.session.commit()  # Insert new User to db table.
+        self.session.commit()  # Insert new Transaction to database.

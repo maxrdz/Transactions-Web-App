@@ -18,11 +18,11 @@
         <div id="container">
             <div class="login">
                 <img src="/resources/images/login.png"><br>
-                <form action="/auth/" id="login-form">
+                <form action="/auth" method="post" id="login-form">
                     <label for="username">{%print(Lang["USERNAME"])%}</label><br>
-                    <input type="username" name="username" value=""><br>
+                    <input type="username" name="username"><br>
                     <label for="password">{%print(Lang["PASSWORD"])%}</label><br>
-                    <input type="password" name="password" value=""><br>
+                    <input type="password" name="password"><br>
                     <button class="big_button">{%print(Lang["LOGIN"])%}</button>
                 </form>
                 <br>

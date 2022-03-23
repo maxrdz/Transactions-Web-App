@@ -1,6 +1,10 @@
-from flask import Flask, send_from_directory, redirect, url_for, request
+from flask import Flask, send_from_directory, redirect, url_for, request, session
+from flask_session.sessions import SqlAlchemySession
 from webserver.Localizer import SpanishLocalizer, EnglishLocalizer
 from webserver.Database import DatabaseManager
+
+# Flask Session Type
+SESSION_TYPE = 'sqlalchemy'
 
 
 class FlaskWebApp:
@@ -15,20 +19,34 @@ class FlaskWebApp:
         self.INDEX_PAGE = "login.html"
         self.HTTP_ERR = "http_error/"
         self.Flask = Flask(__name__, template_folder=self.ROOT_DIR)
+        self.Session = SqlAlchemySession()
+
         self.SpanishLocalizer = SpanishLocalizer()
         self.EnglishLocalizer = EnglishLocalizer()
         self.DEFAULT_LANG = self.SpanishLocalizer.HTML_LANG
         self.Database = DatabaseManager()
 
-        # User Authentication Query String
-        @self.Flask.route("/auth/", methods=["GET"])
-        def authentication_query():
-            query_strings = request.args
-            username = query_strings['username']
-            password = query_strings['password']
-
+        # User Authentication
+        @self.Flask.route("/auth", methods=["POST"])
+        def authentication_form():
+            form = request.form
+            username = form['username']
+            password = form['password']
             auth = self.Database.authenticate_user(username, password)
-            return f"Authentication Status Received: {auth}"
+
+            if auth == [True, True]:
+                # Generate Session ID and redirect
+                session_id = self.Database.create_session(username)
+
+                if session_id:
+                    # TODO: Fix 'no secret key set' Flask session error.
+                    # session['session-id'] = session_id
+                    return "Authenticated!"
+                else:
+                    # TODO: Treat an already existing session.
+                    return "You already have an existing session."
+            else:
+                return redirect(url_for("root"))
 
         # HTTP Code 404 Page
         @self.Flask.errorhandler(404)
