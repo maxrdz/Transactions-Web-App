@@ -1,6 +1,5 @@
 # GCP Credentials
 gcp-service-key.json
-*.pem
 # IntelliJ
 .idea/
 # Python

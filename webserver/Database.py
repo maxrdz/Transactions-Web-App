@@ -86,12 +86,16 @@ class DatabaseManager:
                 query_status[0] = True
         # If username not found, exit method.
         if not query_status[0]:
+            self.notify(f"{username} failed to authenticate. [Wrong Username]")
             return query_status
 
         for user in user_query:
             if user.user_name == username and user.password == password:
                 query_status[1] = True
+                self.notify(f"{username} authenticated!")
                 return query_status
+
+        self.notify(f"{username} failed to authenticate. [Wrong Password]")
         return query_status
 
     def create_session(self, username: str):
@@ -102,10 +106,12 @@ class DatabaseManager:
         user = self.session.query(User).get(username)
 
         if user.session_id is not None:
+            self.notify(f"{username} already has an active session!")
             return False  # The User already has a session.
 
         user.session_id = new_sid
         self.session.commit()  # Insert new session ID to database.
+        self.notify(f"{username} started a new session.")
         return new_sid
 
     def end_session(self, username: str):
@@ -115,10 +121,11 @@ class DatabaseManager:
         user = self.session.query(User).get(username)
         user.session_id = None
         self.session.commit()
+        self.notify(f"{username}'s session was ended.")
 
     def validate_session(self, username: str, session_id: str):
         """
-        Validate a session ID for an existing session in the database.
+        Validate the Session ID for an existing user in the database.
         """
         user = self.session.query(User).get(username)
         if user.session_id == session_id:

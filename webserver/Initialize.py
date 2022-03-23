@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask, send_from_directory, redirect, url_for, request, session
 from flask_session.sessions import SqlAlchemySession
 from webserver.Localizer import SpanishLocalizer, EnglishLocalizer
@@ -20,6 +22,8 @@ class FlaskWebApp:
         self.HTTP_ERR = "http_error/"
         self.Flask = Flask(__name__, template_folder=self.ROOT_DIR)
         self.Session = SqlAlchemySession()
+        # Required to create a Session secret key for Session
+        self.Flask.config.update(SECRET_KEY=str(os.urandom(16)))
 
         self.SpanishLocalizer = SpanishLocalizer()
         self.EnglishLocalizer = EnglishLocalizer()
@@ -39,11 +43,9 @@ class FlaskWebApp:
                 session_id = self.Database.create_session(username)
 
                 if session_id:
-                    # TODO: Fix 'no secret key set' Flask session error.
-                    # session['session-id'] = session_id
+                    session['session-id'] = session_id
                     return "Authenticated!"
                 else:
-                    # TODO: Treat an already existing session.
                     return "You already have an existing session."
             else:
                 return redirect(url_for("root"))
@@ -64,6 +66,7 @@ class FlaskWebApp:
         @self.Flask.route("/es/<path:path>", methods=["GET"])
         def es(path):
             """Return site translated in Spanish."""
+            session['language'] = self.SpanishLocalizer.HTML_LANG
             if ".html" in path:
                 return self.SpanishLocalizer.localize_html(path)
             return redirect(url_for("static_files", path=path))
@@ -72,6 +75,7 @@ class FlaskWebApp:
         @self.Flask.route("/en/<path:path>", methods=["GET"])
         def en(path):
             """Return site translated in English."""
+            session['language'] = self.EnglishLocalizer.HTML_LANG
             if ".html" in path:
                 return self.EnglishLocalizer.localize_html(path)
             return redirect(url_for("static_files", path=path))
@@ -79,8 +83,16 @@ class FlaskWebApp:
         # Website Root
         @self.Flask.route("/", methods=["GET"])
         def root():
-            """Website root, redirect to default language."""
-            return redirect(url_for("es", path=self.INDEX_PAGE))
+            """
+            Website root, redirect to session language.
+            If the client session has no language set, use default.
+            """
+            session_lang = session['language']
+
+            if session_lang:
+                return redirect(url_for(session_lang, path=self.INDEX_PAGE))
+            else:
+                return redirect(url_for("es", path=self.INDEX_PAGE))
 
     def notify(self, string):
         print(f"[{self.__class__.__name__}]: {string}")
