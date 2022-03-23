@@ -102,15 +102,16 @@ class DatabaseManager:
         """
         Create and assign new Session ID to User specified.
         """
-        new_sid = uuid.uuid4()
         user = self.session.query(User).get(username)
 
         if user.session_id is not None:
             self.notify(f"{username} already has an active session!")
-            return False  # The User already has a session.
+            return user.session_id  # The User already has a session.
 
+        new_sid = uuid.uuid4()
         user.session_id = new_sid
         self.session.commit()  # Insert new session ID to database.
+
         self.notify(f"{username} started a new session.")
         return new_sid
 

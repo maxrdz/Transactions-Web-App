@@ -1,6 +1,6 @@
 import os
-
-from flask import Flask, send_from_directory, redirect, url_for, request, session
+from flask import Flask, send_from_directory, redirect, url_for
+from flask import request, make_response, Request
 from flask_session.sessions import SqlAlchemySession
 from webserver.Localizer import SpanishLocalizer, EnglishLocalizer
 from webserver.Database import DatabaseManager
@@ -33,6 +33,20 @@ class FlaskWebApp:
         # User Authentication
         @self.Flask.route("/auth", methods=["POST"])
         def authentication_form():
+            # Check if user already has a session cookie
+            session_check = self.check_session_cookie(request)
+            if session_check:
+                check_resp = session_check[0]
+                check_status = session_check[1]
+
+                if check_status is False:
+                    return check_resp  # Send error response
+                else:
+                    # TODO: Authenticate user. (Valid session exists)
+                    # TEMPORARY DEBUG LINE BELOW
+                    self.Database.end_session(request.form['username'])
+                    return check_resp
+
             form = request.form
             username = form['username']
             password = form['password']
@@ -42,12 +56,13 @@ class FlaskWebApp:
                 # Generate Session ID and redirect
                 session_id = self.Database.create_session(username)
 
-                if session_id:
-                    session['session-id'] = session_id
-                    return "Authenticated!"
-                else:
-                    return "You already have an existing session."
+                # Create response with Session ID cookie & user
+                response = make_response("<h2>Authenticated!</h2>")
+                response.set_cookie('User', username)
+                response.set_cookie('SessionID', str(session_id))
+                return response
             else:
+                # TODO: User was not authenticated.
                 return redirect(url_for("root"))
 
         # HTTP Code 404 Page
@@ -65,19 +80,35 @@ class FlaskWebApp:
         # Spanish Localizer
         @self.Flask.route("/es/<path:path>", methods=["GET"])
         def es(path):
-            """Return site translated in Spanish."""
-            session['language'] = self.SpanishLocalizer.HTML_LANG
+            """
+            Return site translated in Spanish.
+            If a page is requested, save current language in cookie.
+            """
+            language = self.SpanishLocalizer.HTML_LANG
+
             if ".html" in path:
-                return self.SpanishLocalizer.localize_html(path)
+                localized_html = self.SpanishLocalizer.localize_html(path)
+                response = make_response(localized_html)
+                response.set_cookie('language', language)
+                return response
+
             return redirect(url_for("static_files", path=path))
 
         # English Localizer
         @self.Flask.route("/en/<path:path>", methods=["GET"])
         def en(path):
-            """Return site translated in English."""
-            session['language'] = self.EnglishLocalizer.HTML_LANG
+            """
+            Return site translated in English.
+            If a page is requested, save current language in cookie.
+            """
+            language = self.EnglishLocalizer.HTML_LANG
+
             if ".html" in path:
-                return self.EnglishLocalizer.localize_html(path)
+                localized_html = self.EnglishLocalizer.localize_html(path)
+                response = make_response(localized_html)
+                response.set_cookie('language', language)
+                return response
+
             return redirect(url_for("static_files", path=path))
 
         # Website Root
@@ -85,14 +116,40 @@ class FlaskWebApp:
         def root():
             """
             Website root, redirect to session language.
-            If the client session has no language set, use default.
+            If the client has no language cookie set, use default.
             """
-            session_lang = session['language']
+            session_lang = request.cookies.get('language')
 
             if session_lang:
                 return redirect(url_for(session_lang, path=self.INDEX_PAGE))
             else:
-                return redirect(url_for("es", path=self.INDEX_PAGE))
+                return redirect(url_for(self.DEFAULT_LANG, path=self.INDEX_PAGE))
+
+    def check_session_cookie(self, req: Request):
+        """
+        Check if user has a Session ID cookie using request given.
+        Returns an array [response, status].
+        """
+        if req.cookies.get('SessionID') is not None:
+            sid = req.cookies.get('SessionID')
+            username = req.cookies.get('User')
+            # If there is no Username cookie, clear SID.
+            if username is None:
+                response = make_response("<h2>Missing Cookie; Please try again.</h2>")
+                response.delete_cookie('SessionID')
+                return [response, False]
+
+            valid = self.Database.validate_session(username, sid)
+            if valid:
+                response = make_response("<h2>Authenticated using existing session!</h2>")
+                return [response, True]
+            else:
+                # Session is invalid, clear the user's cookie.
+                response = make_response("<h2>Your session is no longer valid, retry.</h2>")
+                response.delete_cookie('SessionID')
+                return [response, False]
+        # Return None if no Session ID cookie was found.
+        return None
 
     def notify(self, string):
         print(f"[{self.__class__.__name__}]: {string}")
