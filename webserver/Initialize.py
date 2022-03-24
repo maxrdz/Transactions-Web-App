@@ -43,8 +43,6 @@ class FlaskWebApp:
                     return check_resp  # Send error response
                 else:
                     # TODO: Authenticate user. (Valid session exists)
-                    # TEMPORARY DEBUG LINE BELOW
-                    self.Database.end_session(request.form['username'])
                     return check_resp
 
             form = request.form
@@ -52,18 +50,23 @@ class FlaskWebApp:
             password = form['password']
             auth = self.Database.authenticate_user(username, password)
 
-            if auth == [True, True]:
-                # Generate Session ID and redirect
-                session_id = self.Database.create_session(username)
+            if auth:
+                if auth == [True, True]:
+                    # TODO: User authenticated to a new session.
+                    # Generate Session ID and redirect
+                    session_id = self.Database.create_session(username)
 
-                # Create response with Session ID cookie & user
-                response = make_response("<h2>Authenticated!</h2>")
-                response.set_cookie('User', username)
-                response.set_cookie('SessionID', str(session_id))
-                return response
+                    # Create response with Session ID cookie & user
+                    response = make_response("<h1>Authenticated!</h1>")
+                    response.set_cookie('User', username)
+                    response.set_cookie('SessionID', str(session_id))
+                    return response
+                else:
+                    # TODO: User was not authenticated.
+                    return redirect(url_for("root"))
             else:
-                # TODO: User was not authenticated.
-                return redirect(url_for("root"))
+                # TODO: User account is not activated. (Disabled)
+                return "<h1>Sorry, your account is disabled.</h1>"
 
         # HTTP Code 404 Page
         @self.Flask.errorhandler(404)
@@ -130,22 +133,23 @@ class FlaskWebApp:
         Check if user has a Session ID cookie using request given.
         Returns an array [response, status].
         """
-        if req.cookies.get('SessionID') is not None:
-            sid = req.cookies.get('SessionID')
+        session_id = req.cookies.get('SessionID')
+
+        if session_id is not None:
             username = req.cookies.get('User')
             # If there is no Username cookie, clear SID.
             if username is None:
-                response = make_response("<h2>Missing Cookie; Please try again.</h2>")
+                response = make_response("<h1>Missing Cookie; Please try again.</h1>")
                 response.delete_cookie('SessionID')
                 return [response, False]
 
-            valid = self.Database.validate_session(username, sid)
+            valid = self.Database.validate_session(username, session_id)
             if valid:
-                response = make_response("<h2>Authenticated using existing session!</h2>")
+                response = make_response("<h1>Authenticated using existing session!</h1>")
                 return [response, True]
             else:
                 # Session is invalid, clear the user's cookie.
-                response = make_response("<h2>Your session is no longer valid, retry.</h2>")
+                response = make_response("<h1>Your session is no longer valid, retry.</h1>")
                 response.delete_cookie('SessionID')
                 return [response, False]
         # Return None if no Session ID cookie was found.

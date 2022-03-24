@@ -1,10 +1,12 @@
 import os
 import uuid
+from datetime import datetime, timedelta
 from pymysql import connections
 from sqlalchemy import engine, create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from google.cloud.sql.connector import connector
 from sqlalchemy import Column, String, SMALLINT, TIMESTAMP, Integer
+from apscheduler.schedulers.background import BackgroundScheduler
 
 DeclarativeBase = declarative_base()
 
@@ -18,6 +20,12 @@ class User(DeclarativeBase):
     status = Column(SMALLINT)
     created_at = Column(TIMESTAMP)
     session_id = Column(String(40))  # (NULL if logged out)
+    sid_expires = Column(TIMESTAMP)  # Defaults to last time updated
+
+    def __repr__(self):  # How print() prints this object.
+        return f"{self.user_name} | {self.password} | \
+{self.first_name} | {self.last_name} | {self.status} | \
+{self.created_at} | {self.session_id} | {self.sid_expires}"
 
 
 class Transaction(DeclarativeBase):
@@ -28,6 +36,10 @@ class Transaction(DeclarativeBase):
     type = Column(SMALLINT)  # 0 = Spent, 1 = Deposit
     amount = Column(Integer)
 
+    def __repr__(self):  # How print() prints this object.
+        return f"{self.entry_id} | {self.timestamp} |\
+{self.topic} | {self.type} | {self.amount}"
+
 
 class DatabaseManager:
     """
@@ -36,7 +48,7 @@ class DatabaseManager:
     for user authentication and accessing transactions.
     """
     def __init__(self):
-        self.configuration = {
+        self.gcp_config = {
             "creds": "gcp-service-key.json",
             "instance": "wide-plating-343222:us-west4:transaction-db",
             "sql-driver": "pymysql",
@@ -44,14 +56,26 @@ class DatabaseManager:
             "sql-pass": "mysqldbpass",
             "sql-db": "TransactionDB"
         }
-        # GCP API account credentials
-        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = self.configuration['creds']
+        self.sessions_config = {
+            "valid_time": 20,  # (minutes)
+            "check_interval": 10  # (minutes)
+        }
+        # Set GCP API service account keys
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = self.gcp_config['creds']
 
+        # Initialize connection to the MySQL server
         self.notify("Connecting to GCP Cloud MySQL server ..")
         self.engine = self.init_connection_engine()
         session = sessionmaker(bind=self.engine)
         self.session = session()
         self.notify("MySQL session created successfully.")
+
+        # Initialize scheduler (user session expiration)
+        self.scheduler = BackgroundScheduler()
+        self.scheduler.add_job(
+            self.check_session_expirations, "interval",
+            minutes=self.sessions_config['check_interval'])
+        self.scheduler.start()
 
     def notify(self, string):
         print(f"[{self.__class__.__name__}]: {string}")
@@ -59,16 +83,16 @@ class DatabaseManager:
     def init_connection_engine(self) -> engine.Engine:
         def get_connect() -> connections.Connection:
             connect: connections.Connection = connector.connect(
-                self.configuration["instance"],
-                self.configuration["sql-driver"],
-                user=self.configuration["sql-user"],
-                password=self.configuration["sql-pass"],
-                db=self.configuration["sql-db"]
+                self.gcp_config["instance"],
+                self.gcp_config["sql-driver"],
+                user=self.gcp_config["sql-user"],
+                password=self.gcp_config["sql-pass"],
+                db=self.gcp_config["sql-db"]
             )
             return connect
 
         new_engine = create_engine(
-            f"mysql+{self.configuration['sql-driver']}://",
+            f"mysql+{self.gcp_config['sql-driver']}://",
             creator=get_connect,
         )
         return new_engine
@@ -78,25 +102,24 @@ class DatabaseManager:
         Query and authenticate user credentials given.
         Returns query status, [user_found: ``Bool``, pass_matched: ``Bool``]
         """
-        user_query = self.session.query(User)
-        query_status = [False, False]
+        user = self.session.query(User).get(username)
+        credentials_status = [False, False]
 
-        for user in user_query:
-            if user.user_name == username:
-                query_status[0] = True
-        # If username not found, exit method.
-        if not query_status[0]:
-            self.notify(f"{username} failed to authenticate. [Wrong Username]")
-            return query_status
+        if user is None:
+            self.notify(f"Failed to authenticate. [User not found]")
+            return credentials_status
+        credentials_status[0] = True  # Username found
 
-        for user in user_query:
-            if user.user_name == username and user.password == password:
-                query_status[1] = True
-                self.notify(f"{username} authenticated!")
-                return query_status
+        if user.status != 1:
+            return False  # Check if user account is disabled
+
+        if user.password == password:
+            credentials_status[1] = True
+            self.notify(f"{username} authenticated!")
+            return credentials_status
 
         self.notify(f"{username} failed to authenticate. [Wrong Password]")
-        return query_status
+        return credentials_status
 
     def create_session(self, username: str):
         """
@@ -110,8 +133,10 @@ class DatabaseManager:
 
         new_sid = uuid.uuid4()
         user.session_id = new_sid
-        self.session.commit()  # Insert new session ID to database.
+        user.sid_expires = \
+            datetime.now() + timedelta(minutes=self.sessions_config['valid_time'])
 
+        self.session.commit()  # Insert data to database.
         self.notify(f"{username} started a new session.")
         return new_sid
 
@@ -133,16 +158,39 @@ class DatabaseManager:
             return True
         return False
 
+    def check_session_expirations(self):
+        """
+        Scheduled event that checks the database for expired sessions.
+        """
+        user_table = self.session.query(User)
+
+        for user in user_table:
+            if user.session_id is not None:
+                # Check expiration if SID exists
+                expiration = user.sid_expires
+                if datetime.now() > expiration:
+                    self.end_session(user.user_name)
+
     def create_transaction(self, topic: str, t_type: int, amount: int):
         """
         Add a new transaction entry to the database. For
         transaction type, 0 = Spent and 1 = Deposit.
         """
         transaction = Transaction()
-        transaction.entry_id = None  # TODO: Generate ID
+        transaction.entry_id = uuid.uuid4()
         transaction.timestamp = None  # TODO: Get Timestamp
         transaction.topic = topic
         transaction.type = t_type
         transaction.amount = amount
         self.session.add(transaction)
         self.session.commit()  # Insert new Transaction to database.
+
+    def print_db_table(self, table_class: DeclarativeBase):
+        """Prints entire table from database. (Debugging Purposes)"""
+        if User.__class__ is not type(DeclarativeBase):
+            self.notify("print_db_table(): Table not of type 'DeclarativeBase'")
+            return
+        table_query = self.session.query(table_class)
+        table = self.session.execute(table_query)
+        for row_object in table:
+            print(row_object)
