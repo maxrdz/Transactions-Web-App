@@ -23,6 +23,11 @@ class Localizer:
                 "PASSWORD": "",
                 "LOGIN": "",
                 "SELECT_LANG": ""
+            },
+            "panel.html": {
+                "SPANISH": "",
+                "ENGLISH": "",
+                "WELCOME": ""
             }
         }
 
@@ -42,7 +47,6 @@ class SpanishLocalizer(Localizer):
         # /http_error/404.html dictionary
         self.LANG["http_error/404.html"]["ERROR_MESSAGE"] = "Página no encontrada."
         # /login.html dictionary
-        self.LANG["login.html"]["HTML_LANG"] = "es"
         self.LANG["login.html"]["SPANISH"] = "Español"
         self.LANG["login.html"]["ENGLISH"] = "Inglés"
         self.LANG["login.html"]["PAGE_TITLE"] = "Inicio de sesión"
@@ -51,7 +55,9 @@ class SpanishLocalizer(Localizer):
         self.LANG["login.html"]["PASSWORD"] = "Contraseña"
         self.LANG["login.html"]["LOGIN"] = "Iniciar Sesión"
         self.LANG["login.html"]["SELECT_LANG"] = "Selecciona un idioma"
-
+        # /panel.html dictionary
+        self.LANG["panel.html"]["SPANISH"] = "Español"
+        self.LANG["panel.html"]["ENGLISH"] = "Inglés"
 
 class EnglishLocalizer(Localizer):
 
@@ -61,7 +67,6 @@ class EnglishLocalizer(Localizer):
         # /http_error/404.html dictionary
         self.LANG["http_error/404.html"]["ERROR_MESSAGE"] = "Not Found."
         # /login.html dictionary
-        self.LANG["login.html"]["HTML_LANG"] = "en"
         self.LANG["login.html"]["SPANISH"] = "Spanish"
         self.LANG["login.html"]["ENGLISH"] = "English"
         self.LANG["login.html"]["PAGE_TITLE"] = "Login to your account"
@@ -70,3 +75,7 @@ class EnglishLocalizer(Localizer):
         self.LANG["login.html"]["PASSWORD"] = "Enter password"
         self.LANG["login.html"]["LOGIN"] = "Login to session"
         self.LANG["login.html"]["SELECT_LANG"] = "Select a language"
+        # /panel.html dictionary
+        self.LANG["panel.html"]["SPANISH"] = "Spanish"
+        self.LANG["panel.html"]["ENGLISH"] = "English"
+        self.LANG["panel.html"]["WELCOME"] = "Welcome,"

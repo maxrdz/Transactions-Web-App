@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="{%print(Localizer.HTML_LANG)%}">
+    <body>
+        <div class="footer">
+            <p class="copyright" style="padding-bottom: 0%;">
+                {%print(Lang["SELECT_LANG"])%}:
+            </p>
+
+            <form action="/lang" method="POST">
+                <button type="submit" name="lang" value="es" class="btn-link">
+                    {%print(Lang["SPANISH"])%}
+                </button>
+            </form>
+            <form action="/lang" method="POST">
+                <button type="submit" name="lang" value="en" class="btn-link">
+                    {%print(Lang["ENGLISH"])%}
+                </button>
+            </form>
+
+            <p class="copyright">Copyright © {%print(Localizer.get_copyright_year())%}
+                <a href="">Max Rodriguez</a>
+            </p>
+        </div>
+    </body>
+</html>

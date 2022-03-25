@@ -42,7 +42,7 @@ class FlaskWebApp:
                 if check_status is False:
                     return check_resp  # Send error response
                 else:
-                    # TODO: Authenticate user. (Valid session exists)
+                    # Authenticated with an existing session.
                     return check_resp
 
             form = request.form
@@ -52,8 +52,7 @@ class FlaskWebApp:
 
             if auth:
                 if auth == [True, True]:
-                    # TODO: User authenticated to a new session.
-                    # Generate Session ID and redirect
+                    # User authenticated successfully.
                     session_id = self.Database.create_session(username)
 
                     # Create response with Session ID cookie & user
@@ -62,23 +61,11 @@ class FlaskWebApp:
                     response.set_cookie('SessionID', str(session_id))
                     return response
                 else:
-                    # TODO: User was not authenticated.
+                    # User was not authenticated.
                     return redirect(url_for("root"))
             else:
-                # TODO: User account is not activated. (Disabled)
+                # User account is not activated. (Disabled)
                 return "<h1>Sorry, your account is disabled.</h1>"
-
-        # HTTP Code 404 Page
-        @self.Flask.errorhandler(404)
-        def http_not_found(err_msg):
-            """Return HTTP 404 not found page."""
-            return self.EnglishLocalizer.localize_html(f"{self.HTTP_ERR}404.html")
-
-        # Serve Static Files
-        @self.Flask.route("/<path:path>", methods=["GET"])
-        def static_files(path):
-            """Send static content such as css and images."""
-            return send_from_directory(self.ROOT_DIR, path)
 
         # Spanish Localizer
         @self.Flask.route("/es/<path:path>", methods=["GET"])
@@ -114,6 +101,33 @@ class FlaskWebApp:
 
             return redirect(url_for("static_files", path=path))
 
+        # User Panel Page
+        @self.Flask.route("/panel", methods=["GET"])
+        def user_panel():
+            session_check = self.check_session_cookie(request)
+            preferred_lang = self.check_language_cookie(request)
+            # TODO: Validate session and serve localized page.
+
+        # User Login Screen
+        @self.Flask.route("/login", methods=["GET"])
+        def user_login():
+            preferred_lang = self.check_language_cookie(request)
+            return
+
+        # Set new preferred language cookie
+        @self.Flask.route("/lang", methods=["POST"])
+        def request_language():
+            language = request.form['lang']
+            response = make_response(redirect("root"))
+            response.set_cookie('language', language)
+            return response
+
+        # Serve Static Files
+        @self.Flask.route("/<path:path>", methods=["GET"])
+        def static_files(path):
+            """Send static content such as CSS and images."""
+            return send_from_directory(self.ROOT_DIR, path)
+
         # Website Root
         @self.Flask.route("/", methods=["GET"])
         def root():
@@ -121,12 +135,36 @@ class FlaskWebApp:
             Website root, redirect to session language.
             If the client has no language cookie set, use default.
             """
-            session_lang = request.cookies.get('language')
+            session_check = self.check_session_cookie(request)
+            if session_check:
+                return redirect("user_panel")  # Redirect to user panel.
 
-            if session_lang:
-                return redirect(url_for(session_lang, path=self.INDEX_PAGE))
-            else:
-                return redirect(url_for(self.DEFAULT_LANG, path=self.INDEX_PAGE))
+            return redirect("user_login")  # New user, send to login page.
+
+        # HTTP Code 404 Page
+        @self.Flask.errorhandler(404)
+        def http_not_found(err_msg):
+            """Return 'HTTP 404: Not Found' page"""
+            return self.EnglishLocalizer.localize_html(f"{self.HTTP_ERR}404.html")
+
+    def check_language_cookie(self, req: Request):
+        """
+        Check for a preferred language cookie, returns language.
+        """
+        language = req.cookies.get('language')
+        # Return if no language cookie found.
+        if language is None:
+            return self.DEFAULT_LANG
+
+        # If cookie exists, detect language.
+        match language:
+            case self.SpanishLocalizer.HTML_LANG:
+                return self.SpanishLocalizer.HTML_LANG
+
+            case self.EnglishLocalizer.HTML_LANG:
+                return self.EnglishLocalizer.HTML_LANG
+        # Language invalid, return default
+        return self.DEFAULT_LANG
 
     def check_session_cookie(self, req: Request):
         """
@@ -135,25 +173,26 @@ class FlaskWebApp:
         """
         session_id = req.cookies.get('SessionID')
 
-        if session_id is not None:
-            username = req.cookies.get('User')
-            # If there is no Username cookie, clear SID.
-            if username is None:
-                response = make_response("<h1>Missing Cookie; Please try again.</h1>")
-                response.delete_cookie('SessionID')
-                return [response, False]
-
-            valid = self.Database.validate_session(username, session_id)
-            if valid:
-                response = make_response("<h1>Authenticated using existing session!</h1>")
-                return [response, True]
-            else:
-                # Session is invalid, clear the user's cookie.
-                response = make_response("<h1>Your session is no longer valid, retry.</h1>")
-                response.delete_cookie('SessionID')
-                return [response, False]
         # Return None if no Session ID cookie was found.
-        return None
+        if session_id is None:
+            return None
+
+        username = req.cookies.get('User')
+        # If there is no Username cookie, clear SID.
+        if username is None:
+            response = make_response()
+            response.delete_cookie('SessionID')
+            return [response, False]
+
+        valid = self.Database.validate_session(username, session_id)
+        if valid:
+            self.Database.renew_session(username)  # Update expiration timestamp
+            return [None, True]
+        else:
+            # Session is invalid, clear the user's cookie.
+            response = make_response()
+            response.delete_cookie('SessionID')
+            return [response, False]
 
     def notify(self, string):
         print(f"[{self.__class__.__name__}]: {string}")

@@ -76,6 +76,8 @@ class DatabaseManager:
             self.check_session_expirations, "interval",
             minutes=self.sessions_config['check_interval'])
         self.scheduler.start()
+        # Manual expiration check on start up
+        self.check_session_expirations()
 
     def notify(self, string):
         print(f"[{self.__class__.__name__}]: {string}")
@@ -157,6 +159,16 @@ class DatabaseManager:
         if user.session_id == session_id:
             return True
         return False
+
+    def renew_session(self, username: str):
+        """
+        Renew expiration timestamp for given User's session.
+        """
+        user = self.session.query(User).get(username)
+        user.sid_expires = \
+            datetime.now() + timedelta(minutes=self.sessions_config['valid_time'])
+        self.session.commit()
+        self.notify(f"{username} renewed their session.")
 
     def check_session_expirations(self):
         """

@@ -83,6 +83,17 @@ h1 {
         width: 100%;
         bottom: 0;
     }
+    .btn-link {
+        border: none;
+        outline: none;
+        background: none;
+        cursor: pointer;
+        color: orange;
+        padding: 0;
+        text-decoration: underline;
+        font-family: inherit;
+        font-size: inherit;
+    }
     .copyright {
         padding-top: 2%;
         padding-bottom: 1.5%;
