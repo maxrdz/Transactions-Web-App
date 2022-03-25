@@ -9,73 +9,40 @@ class Localizer:
     Every language localizer inherits and extends this class.
     """
     def __init__(self):
-        self.HTML_LANG = ""
+        self.SPANISH = "es"
+        self.ENGLISH = "en"
+        self.DEFAULT = self.SPANISH
+
         self.LANG = {
-            "http_error/404.html": {
-                "ERROR_MESSAGE": ""
+            f"{self.SPANISH}": {
+                "404": "No se encontró el archivo",
+                "SPANISH": "Español",
+                "ENGLISH": "Inglés",
+                "PAGE_TITLE": "Inicio de sesión",
+                "LOGIN_HEADER": "Iniciar Sesión",
+                "USERNAME": "Nombre de usuario",
+                "PASSWORD": "Contraseña",
+                "LOGIN": "Iniciar Sesión",
+                "SELECT_LANG": "Selecciona un idioma",
+                "WELCOME": "Hola"
             },
-            "login.html": {
-                "SPANISH": "",
-                "ENGLISH": "",
-                "PAGE_TITLE": "",
-                "LOGIN_HEADER": "",
-                "USERNAME": "",
-                "PASSWORD": "",
-                "LOGIN": "",
-                "SELECT_LANG": ""
-            },
-            "panel.html": {
-                "SPANISH": "",
-                "ENGLISH": "",
-                "WELCOME": ""
+            f"{self.ENGLISH}": {
+                "404": "File not found",
+                "SPANISH": "Spanish",
+                "ENGLISH": "English",
+                "PAGE_TITLE": "Login to your account",
+                "LOGIN_HEADER": "New Session",
+                "USERNAME": "Enter username",
+                "PASSWORD": "Enter password",
+                "LOGIN": "Login to session",
+                "SELECT_LANG": "Select your language",
+                "WELCOME": "Welcome"
             }
         }
 
-    def localize_html(self, html):
-        return render_template(
-            html, Localizer=self, Lang=self.LANG[html], path=html)
+    def localize_html(self, lang, html):
+        return render_template(html, Localizer=self, HTML_LANG=lang,
+                               Lang=self.LANG[lang], path=html)
 
     def get_copyright_year(self):
         return datetime.now().year
-
-
-class SpanishLocalizer(Localizer):
-
-    def __init__(self):
-        super().__init__()
-        self.HTML_LANG = "es"
-        # /http_error/404.html dictionary
-        self.LANG["http_error/404.html"]["ERROR_MESSAGE"] = "Página no encontrada."
-        # /login.html dictionary
-        self.LANG["login.html"]["SPANISH"] = "Español"
-        self.LANG["login.html"]["ENGLISH"] = "Inglés"
-        self.LANG["login.html"]["PAGE_TITLE"] = "Inicio de sesión"
-        self.LANG["login.html"]["LOGIN_HEADER"] = "Iniciar Sesión"
-        self.LANG["login.html"]["USERNAME"] = "Nombre de usuario"
-        self.LANG["login.html"]["PASSWORD"] = "Contraseña"
-        self.LANG["login.html"]["LOGIN"] = "Iniciar Sesión"
-        self.LANG["login.html"]["SELECT_LANG"] = "Selecciona un idioma"
-        # /panel.html dictionary
-        self.LANG["panel.html"]["SPANISH"] = "Español"
-        self.LANG["panel.html"]["ENGLISH"] = "Inglés"
-
-class EnglishLocalizer(Localizer):
-
-    def __init__(self):
-        super().__init__()
-        self.HTML_LANG = "en"
-        # /http_error/404.html dictionary
-        self.LANG["http_error/404.html"]["ERROR_MESSAGE"] = "Not Found."
-        # /login.html dictionary
-        self.LANG["login.html"]["SPANISH"] = "Spanish"
-        self.LANG["login.html"]["ENGLISH"] = "English"
-        self.LANG["login.html"]["PAGE_TITLE"] = "Login to your account"
-        self.LANG["login.html"]["LOGIN_HEADER"] = "Begin Session"
-        self.LANG["login.html"]["USERNAME"] = "Enter username"
-        self.LANG["login.html"]["PASSWORD"] = "Enter password"
-        self.LANG["login.html"]["LOGIN"] = "Login to session"
-        self.LANG["login.html"]["SELECT_LANG"] = "Select a language"
-        # /panel.html dictionary
-        self.LANG["panel.html"]["SPANISH"] = "Spanish"
-        self.LANG["panel.html"]["ENGLISH"] = "English"
-        self.LANG["panel.html"]["WELCOME"] = "Welcome,"

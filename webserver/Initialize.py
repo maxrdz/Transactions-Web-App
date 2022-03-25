@@ -2,7 +2,7 @@ import os
 from flask import Flask, send_from_directory, redirect, url_for
 from flask import request, make_response, Request
 from flask_session.sessions import SqlAlchemySession
-from webserver.Localizer import SpanishLocalizer, EnglishLocalizer
+from webserver.Localizer import Localizer
 from webserver.Database import DatabaseManager
 
 # Flask Session Type
@@ -18,16 +18,13 @@ class FlaskWebApp:
         self.HOST = "0.0.0.0"
         self.PORT = 80  # HTTP
         self.ROOT_DIR = "www"
-        self.INDEX_PAGE = "login.html"
         self.HTTP_ERR = "http_error/"
+        # Flask initialize
         self.Flask = Flask(__name__, template_folder=self.ROOT_DIR)
         self.Session = SqlAlchemySession()
-        # Required to create a Session secret key for Session
         self.Flask.config.update(SECRET_KEY=str(os.urandom(16)))
-
-        self.SpanishLocalizer = SpanishLocalizer()
-        self.EnglishLocalizer = EnglishLocalizer()
-        self.DEFAULT_LANG = self.SpanishLocalizer.HTML_LANG
+        # Project Modules
+        self.Localizer = Localizer()
         self.Database = DatabaseManager()
 
         # User Authentication
@@ -43,7 +40,7 @@ class FlaskWebApp:
                     return check_resp  # Send error response
                 else:
                     # Authenticated with an existing session.
-                    return check_resp
+                    return redirect(url_for("user_panel"))
 
             form = request.form
             username = form['username']
@@ -67,52 +64,21 @@ class FlaskWebApp:
                 # User account is not activated. (Disabled)
                 return "<h1>Sorry, your account is disabled.</h1>"
 
-        # Spanish Localizer
-        @self.Flask.route("/es/<path:path>", methods=["GET"])
-        def es(path):
-            """
-            Return site translated in Spanish.
-            If a page is requested, save current language in cookie.
-            """
-            language = self.SpanishLocalizer.HTML_LANG
-
-            if ".html" in path:
-                localized_html = self.SpanishLocalizer.localize_html(path)
-                response = make_response(localized_html)
-                response.set_cookie('language', language)
-                return response
-
-            return redirect(url_for("static_files", path=path))
-
-        # English Localizer
-        @self.Flask.route("/en/<path:path>", methods=["GET"])
-        def en(path):
-            """
-            Return site translated in English.
-            If a page is requested, save current language in cookie.
-            """
-            language = self.EnglishLocalizer.HTML_LANG
-
-            if ".html" in path:
-                localized_html = self.EnglishLocalizer.localize_html(path)
-                response = make_response(localized_html)
-                response.set_cookie('language', language)
-                return response
-
-            return redirect(url_for("static_files", path=path))
-
         # User Panel Page
         @self.Flask.route("/panel", methods=["GET"])
         def user_panel():
             session_check = self.check_session_cookie(request)
-            preferred_lang = self.check_language_cookie(request)
-            # TODO: Validate session and serve localized page.
+            if not session_check:  # Redirect unauthorized requests
+                return redirect("root")
+
+            lang = self.check_language_cookie(request)
+            return self.Localizer.localize_html(lang, "panel.html")
 
         # User Login Screen
         @self.Flask.route("/login", methods=["GET"])
         def user_login():
-            preferred_lang = self.check_language_cookie(request)
-            return
+            lang = self.check_language_cookie(request)
+            return self.Localizer.localize_html(lang, "login.html")
 
         # Set new preferred language cookie
         @self.Flask.route("/lang", methods=["POST"])
@@ -124,7 +90,7 @@ class FlaskWebApp:
 
         # Serve Static Files
         @self.Flask.route("/<path:path>", methods=["GET"])
-        def static_files(path):
+        def static_content(path):
             """Send static content such as CSS and images."""
             return send_from_directory(self.ROOT_DIR, path)
 
@@ -137,15 +103,17 @@ class FlaskWebApp:
             """
             session_check = self.check_session_cookie(request)
             if session_check:
-                return redirect("user_panel")  # Redirect to user panel.
+                return redirect(url_for("user_panel"))  # Redirect to user panel.
 
-            return redirect("user_login")  # New user, send to login page.
+            return redirect(url_for("user_login"))  # New user, send to login page.
 
         # HTTP Code 404 Page
         @self.Flask.errorhandler(404)
         def http_not_found(err_msg):
             """Return 'HTTP 404: Not Found' page"""
-            return self.EnglishLocalizer.localize_html(f"{self.HTTP_ERR}404.html")
+            lang = self.check_language_cookie(request)
+            return self.Localizer.localize_html(
+                lang, f"{self.HTTP_ERR}404.html")
 
     def check_language_cookie(self, req: Request):
         """
@@ -154,17 +122,16 @@ class FlaskWebApp:
         language = req.cookies.get('language')
         # Return if no language cookie found.
         if language is None:
-            return self.DEFAULT_LANG
+            return self.Localizer.DEFAULT
 
         # If cookie exists, detect language.
-        match language:
-            case self.SpanishLocalizer.HTML_LANG:
-                return self.SpanishLocalizer.HTML_LANG
+        try:
+            dummy = self.Localizer.LANG[language]
+        except KeyError:
+            # Language invalid, return default
+            return self.Localizer.DEFAULT
 
-            case self.EnglishLocalizer.HTML_LANG:
-                return self.EnglishLocalizer.HTML_LANG
-        # Language invalid, return default
-        return self.DEFAULT_LANG
+        return language  # Valid language detected
 
     def check_session_cookie(self, req: Request):
         """
