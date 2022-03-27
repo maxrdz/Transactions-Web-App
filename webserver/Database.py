@@ -6,7 +6,6 @@ from sqlalchemy import engine, create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from google.cloud.sql.connector import connector
 from sqlalchemy import Column, String, SMALLINT, TIMESTAMP, Integer
-from apscheduler.schedulers.background import BackgroundScheduler
 
 DeclarativeBase = declarative_base()
 
@@ -48,6 +47,7 @@ class DatabaseManager:
     for user authentication and accessing transactions.
     """
     def __init__(self):
+        self.session_time = 1  # (minutes)
         self.gcp_config = {
             "creds": "gcp-service-key.json",
             "instance": "wide-plating-343222:us-west4:transaction-db",
@@ -55,10 +55,6 @@ class DatabaseManager:
             "sql-user": "server",
             "sql-pass": "mysqldbpass",
             "sql-db": "TransactionDB"
-        }
-        self.sessions_config = {
-            "valid_time": 20,  # (minutes)
-            "check_interval": 10  # (minutes)
         }
         # Set GCP API service account keys
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = self.gcp_config['creds']
@@ -69,15 +65,6 @@ class DatabaseManager:
         session = sessionmaker(bind=self.engine)
         self.session = session()
         self.notify("MySQL session created successfully.")
-
-        # Initialize scheduler (user session expiration)
-        self.scheduler = BackgroundScheduler()
-        self.scheduler.add_job(
-            self.check_session_expirations, "interval",
-            minutes=self.sessions_config['check_interval'])
-        self.scheduler.start()
-        # Manual expiration check on start up
-        self.check_session_expirations()
 
     def notify(self, string):
         print(f"[{self.__class__.__name__}]: {string}")
@@ -136,7 +123,7 @@ class DatabaseManager:
         new_sid = uuid.uuid4()
         user.session_id = new_sid
         user.sid_expires = \
-            datetime.now() + timedelta(minutes=self.sessions_config['valid_time'])
+            datetime.now() + timedelta(minutes=self.session_time)
 
         self.session.commit()  # Insert data to database.
         self.notify(f"{username} started a new session.")
@@ -156,9 +143,15 @@ class DatabaseManager:
         Validate the Session ID for an existing user in the database.
         """
         user = self.session.query(User).get(username)
-        if user.session_id == session_id:
-            return True
-        return False
+        sid = user.session_id
+        expiration = user.sid_expires
+
+        if sid != session_id:
+            return False  # Session ID is not valid
+        if datetime.now() > expiration:
+            self.end_session(username)
+            return False  # Session exists but has expired
+        return True
 
     def renew_session(self, username: str):
         """
@@ -166,22 +159,8 @@ class DatabaseManager:
         """
         user = self.session.query(User).get(username)
         user.sid_expires = \
-            datetime.now() + timedelta(minutes=self.sessions_config['valid_time'])
+            datetime.now() + timedelta(minutes=self.session_time)
         self.session.commit()
-        self.notify(f"{username} renewed their session.")
-
-    def check_session_expirations(self):
-        """
-        Scheduled event that checks the database for expired sessions.
-        """
-        user_table = self.session.query(User)
-
-        for user in user_table:
-            if user.session_id is not None:
-                # Check expiration if SID exists
-                expiration = user.sid_expires
-                if datetime.now() > expiration:
-                    self.end_session(user.user_name)
 
     def create_transaction(self, topic: str, t_type: int, amount: int):
         """

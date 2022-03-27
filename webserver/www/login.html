@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="{HTML_LANG}">
     <head>
-        <title>{%print(Lang["PAGE_TITLE"])%}</title>
+        <title>{%print(Lang["LOGIN_TITLE"])%}</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="apple-touch-icon" sizes="180x180" href="/resources/favicon/apple-touch-icon.png">
@@ -10,7 +10,6 @@
         <link rel="manifest" href="/resources/favicon/site.webmanifest">
         <link rel="stylesheet" href="login.css" type="text/css">
     </head>
-    <script src="login.js"></script>
     <body>
         <div class="login-header">
 	    <h1>{%print(Lang["LOGIN_HEADER"])%}</h1>
@@ -29,20 +28,23 @@
             </div>
         </div>
         <div class="footer">
-            <p class="copyright" style="padding-bottom: 0%;">
-                {%print(Lang["SELECT_LANG"])%}:
-            </p>
+            <div style="display: flex;">
+                <p class="copyright" style="padding-bottom: 0%;">
+                    {%print(Lang["SELECT_LANG"])%}:
+                </p>
 
-            <form action="/lang" method="POST">
-                <button type="submit" name="lang" value="es" class="btn-link">
-                    {%print(Lang["SPANISH"])%}
-                </button>
-            </form>
-            <form action="/lang" method="POST">
-                <button type="submit" name="lang" value="en" class="btn-link">
-                    {%print(Lang["ENGLISH"])%}
-                </button>
-            </form>
+                <form action="/lang" method="POST">
+                    <button type="submit" name="lang" value="es">
+                        {%print(Lang["SPANISH"])%}
+                    </button>
+                </form>
+                <p class="copyright"> | </p>
+                <form action="/lang" method="POST">
+                    <button type="submit" name="lang" value="en">
+                        {%print(Lang["ENGLISH"])%}
+                    </button>
+                </form>
+            </div>
 
             <p class="copyright">Copyright © {%print(Localizer.get_copyright_year())%}
                 <a href="">Max Rodriguez</a>

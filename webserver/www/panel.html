@@ -1,21 +1,39 @@
 <!DOCTYPE html>
 <html lang="{%print(Localizer.HTML_LANG)%}">
-    <body>
-        <div class="footer">
-            <p class="copyright" style="padding-bottom: 0%;">
-                {%print(Lang["SELECT_LANG"])%}:
-            </p>
+    <head>
+        <title>{%print(Lang["PANEL_TITLE"])%}</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="apple-touch-icon" sizes="180x180" href="/resources/favicon/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/resources/favicon/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/resources/favicon/favicon-16x16.png">
+        <link rel="manifest" href="/resources/favicon/site.webmanifest">
+        <link rel="stylesheet" href="panel.css" type="text/css">
+    </head>
 
-            <form action="/lang" method="POST">
-                <button type="submit" name="lang" value="es" class="btn-link">
-                    {%print(Lang["SPANISH"])%}
-                </button>
-            </form>
-            <form action="/lang" method="POST">
-                <button type="submit" name="lang" value="en" class="btn-link">
-                    {%print(Lang["ENGLISH"])%}
-                </button>
-            </form>
+    <body>
+        <div class="panel-header">
+	        <h1>{%print(Lang["WELCOME"])%}, {%print(req.cookies.get('User'))%}!</h1>
+        </div>
+
+        <div class="footer">
+            <div style="display: flex;">
+                <p class="copyright" style="padding-bottom: 0%;">
+                    {%print(Lang["SELECT_LANG"])%}:
+                </p>
+
+                <form action="/lang" method="POST">
+                    <button type="submit" name="lang" value="es">
+                        {%print(Lang["SPANISH"])%}
+                    </button>
+                </form>
+                <p class="copyright"> | </p>
+                <form action="/lang" method="POST">
+                    <button type="submit" name="lang" value="en">
+                        {%print(Lang["ENGLISH"])%}
+                    </button>
+                </form>
+            </div>
 
             <p class="copyright">Copyright © {%print(Localizer.get_copyright_year())%}
                 <a href="">Max Rodriguez</a>

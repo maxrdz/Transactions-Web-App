@@ -4,4 +4,3 @@ Flask-Session >= 0.4.0                  # Flask Session Module
 cloud-sql-python-connector >= 0.5.2     # GCP API Connector
 PyMySQL >= 1.0.2                        # MySQL Driver
 SQLAlchemy >= 1.4.32                    # MySQL Toolkit
-APScheduler >= 3.9.1                    # Session expiration

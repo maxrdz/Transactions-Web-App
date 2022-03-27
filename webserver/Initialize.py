@@ -53,13 +53,13 @@ class FlaskWebApp:
                     session_id = self.Database.create_session(username)
 
                     # Create response with Session ID cookie & user
-                    response = make_response("<h1>Authenticated!</h1>")
+                    response = make_response(redirect(url_for("user_panel")))
                     response.set_cookie('User', username)
                     response.set_cookie('SessionID', str(session_id))
                     return response
                 else:
                     # User was not authenticated.
-                    return redirect(url_for("root"))
+                    return redirect(url_for("user_login"))
             else:
                 # User account is not activated. (Disabled)
                 return "<h1>Sorry, your account is disabled.</h1>"
@@ -68,23 +68,37 @@ class FlaskWebApp:
         @self.Flask.route("/panel", methods=["GET"])
         def user_panel():
             session_check = self.check_session_cookie(request)
-            if not session_check:  # Redirect unauthorized requests
-                return redirect("root")
+            if session_check:
+                check_resp = session_check[0]
+                check_status = session_check[1]
 
-            lang = self.check_language_cookie(request)
-            return self.Localizer.localize_html(lang, "panel.html")
+                if check_status is False:
+                    return check_resp  # Send error response
+                else:
+                    # Authenticated with an existing session.
+                    lang = self.check_language_cookie(request)
+                    return self.Localizer.localize_html(
+                        lang, "panel.html", request)
+            # No session cookie, redirect to login.
+            return redirect(url_for("user_login"))
 
         # User Login Screen
         @self.Flask.route("/login", methods=["GET"])
         def user_login():
+            # Redirect to user panel if already in session.
+            session_check = self.check_session_cookie(request)
+            if session_check:
+                return redirect(url_for("user_panel"))
+
             lang = self.check_language_cookie(request)
-            return self.Localizer.localize_html(lang, "login.html")
+            return self.Localizer.localize_html(
+                lang, "login.html", request)
 
         # Set new preferred language cookie
         @self.Flask.route("/lang", methods=["POST"])
         def request_language():
             language = request.form['lang']
-            response = make_response(redirect("root"))
+            response = make_response(redirect(url_for("root")))
             response.set_cookie('language', language)
             return response
 
@@ -113,7 +127,7 @@ class FlaskWebApp:
             """Return 'HTTP 404: Not Found' page"""
             lang = self.check_language_cookie(request)
             return self.Localizer.localize_html(
-                lang, f"{self.HTTP_ERR}404.html")
+                lang, f"{self.HTTP_ERR}404.html", request)
 
     def check_language_cookie(self, req: Request):
         """
@@ -147,17 +161,18 @@ class FlaskWebApp:
         username = req.cookies.get('User')
         # If there is no Username cookie, clear SID.
         if username is None:
-            response = make_response()
+            response = make_response(redirect(url_for("user_login")))
             response.delete_cookie('SessionID')
             return [response, False]
 
         valid = self.Database.validate_session(username, session_id)
         if valid:
-            self.Database.renew_session(username)  # Update expiration timestamp
+            # TODO: Fix Database.renew_session()
+            # self.Database.renew_session(username)  # Update expiration timestamp
             return [None, True]
         else:
             # Session is invalid, clear the user's cookie.
-            response = make_response()
+            response = make_response(redirect(url_for("user_login")))
             response.delete_cookie('SessionID')
             return [response, False]
 

@@ -83,16 +83,22 @@ h1 {
         width: 100%;
         bottom: 0;
     }
-    .btn-link {
+    .footer form {
+        display: inline-block;
+        vertical-align: middle;
+    }
+    .footer button {
         border: none;
         outline: none;
         background: none;
         cursor: pointer;
         color: orange;
         padding: 0;
-        text-decoration: underline;
+        text-decoration: none;
         font-family: inherit;
         font-size: inherit;
+        display: inline-block;
+        vertical-align: middle;
     }
     .copyright {
         padding-top: 2%;
