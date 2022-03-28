@@ -138,11 +138,14 @@ class DatabaseManager:
         self.session.commit()
         self.notify(f"{username}'s session was ended.")
 
-    def validate_session(self, username: str, session_id: str):
+    def validate_session(self, username: str, session_id: str, renew=False):
         """
         Validate the Session ID for an existing user in the database.
+        If the session is validated, it's timestamp is also renewed.
         """
         user = self.session.query(User).get(username)
+        if user is None:
+            return  # If user not found, exit safely.
         sid = user.session_id
         expiration = user.sid_expires
 
@@ -151,16 +154,14 @@ class DatabaseManager:
         if datetime.now() > expiration:
             self.end_session(username)
             return False  # Session exists but has expired
-        return True
 
-    def renew_session(self, username: str):
-        """
-        Renew expiration timestamp for given User's session.
-        """
-        user = self.session.query(User).get(username)
-        user.sid_expires = \
-            datetime.now() + timedelta(minutes=self.session_time)
-        self.session.commit()
+        # Session validated, renew if 'renew' argument set to true.
+        # (AVOID renewing right after session creation to avoid race condition)
+        if renew:
+            user.sid_expires = \
+                datetime.now() + timedelta(minutes=self.session_time)
+            self.session.commit()
+        return True
 
     def create_transaction(self, topic: str, t_type: int, amount: int):
         """

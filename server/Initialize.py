@@ -2,8 +2,8 @@ import os
 from flask import Flask, send_from_directory, redirect, url_for
 from flask import request, make_response, Request
 from flask_session.sessions import SqlAlchemySession
-from webserver.Localizer import Localizer
-from webserver.Database import DatabaseManager
+from server.Localizer import Localizer
+from server.Database import DatabaseManager
 
 # Flask Session Type
 SESSION_TYPE = 'sqlalchemy'
@@ -147,10 +147,10 @@ class FlaskWebApp:
 
         return language  # Valid language detected
 
-    def check_session_cookie(self, req: Request):
+    def check_session_cookie(self, req: Request, renew=False):
         """
         Check if user has a Session ID cookie using request given.
-        Returns an array [response, status].
+        By default doesn't renew session upon validation.
         """
         session_id = req.cookies.get('SessionID')
 
@@ -165,10 +165,8 @@ class FlaskWebApp:
             response.delete_cookie('SessionID')
             return [response, False]
 
-        valid = self.Database.validate_session(username, session_id)
+        valid = self.Database.validate_session(username, session_id, renew=renew)
         if valid:
-            # TODO: Fix Database.renew_session()
-            # self.Database.renew_session(username)  # Update expiration timestamp
             return [None, True]
         else:
             # Session is invalid, clear the user's cookie.

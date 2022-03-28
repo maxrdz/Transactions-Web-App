@@ -5,4 +5,4 @@
 # Usage: ./scripts/launch-server.sh
 
 ENVIRONMENT=.venv/bin/python3.10
-sudo ./$ENVIRONMENT -m webserver.Initialize
+sudo ./$ENVIRONMENT -m server.Initialize

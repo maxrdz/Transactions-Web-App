@@ -18,7 +18,7 @@ After=network.target
 [Service]
 User=root
 WorkingDirectory=$WORKING_DIR
-ExecStart=$PYTHON_VENV -m webserver.Initialize
+ExecStart=$PYTHON_VENV -m server.Initialize
 Restart=always
 
 [Install]

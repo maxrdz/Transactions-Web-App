@@ -25,6 +25,11 @@ h1 {
         width: 100%;
         bottom: 0;
     }
+    .language-selection {
+        display: flex;
+        margin-left: 20%;
+        margin-right: 20%;
+    }
     .footer button {
         border: none;
         outline: none;

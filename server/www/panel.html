@@ -17,22 +17,25 @@
         </div>
 
         <div class="footer">
-            <div style="display: flex;">
+            <div class="language-selection">
                 <p class="copyright" style="padding-bottom: 0%;">
-                    {%print(Lang["SELECT_LANG"])%}:
+                    {%print(Lang["SELECT_LANG"])%}: &nbsp;
                 </p>
+                <div style="display: flex; padding-top: 2%">
 
-                <form action="/lang" method="POST">
-                    <button type="submit" name="lang" value="es">
-                        {%print(Lang["SPANISH"])%}
-                    </button>
-                </form>
-                <p class="copyright"> | </p>
-                <form action="/lang" method="POST">
-                    <button type="submit" name="lang" value="en">
-                        {%print(Lang["ENGLISH"])%}
-                    </button>
-                </form>
+                    <form action="/lang" method="POST">
+                        <button type="submit" name="lang" value="es">
+                            {%print(Lang["SPANISH"])%}
+                        </button>
+                    </form>
+                    &nbsp;
+                    <form action="/lang" method="POST">
+                        <button type="submit" name="lang" value="en">
+                            {%print(Lang["ENGLISH"])%}
+                        </button>
+                    </form>
+
+                </div>
             </div>
 
             <p class="copyright">Copyright © {%print(Localizer.get_copyright_year())%}
