@@ -18,10 +18,10 @@
 
         <div class="footer">
             <div class="language-selection">
-                <p class="copyright" style="padding-bottom: 0%;">
-                    {%print(Lang["SELECT_LANG"])%}: &nbsp;
+                <p class="select-lang-text">
+                    {%print(Lang["SELECT_LANG"])%}:
                 </p>
-                <div style="display: flex; padding-top: 2%">
+                <div class="language-buttons">
 
                     <form action="/lang" method="POST">
                         <button type="submit" name="lang" value="es">
@@ -37,7 +37,6 @@
 
                 </div>
             </div>
-
             <p class="copyright">Copyright © {%print(Localizer.get_copyright_year())%}
                 <a href="">Max Rodriguez</a>
             </p>
