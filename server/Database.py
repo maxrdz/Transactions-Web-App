@@ -47,7 +47,7 @@ class DatabaseManager:
     for user authentication and accessing transactions.
     """
     def __init__(self):
-        self.session_time = 1  # (minutes)
+        self.session_time = 20  # (minutes)
         self.gcp_config = {
             "creds": "gcp-service-key.json",
             "instance": "wide-plating-343222:us-west4:transaction-db",
